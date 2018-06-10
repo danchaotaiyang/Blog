@@ -1,4 +1,4 @@
-#JavaScript代码注释范例
+# JavaScript代码注释范例
 
 > 做为一个有情怀的Coder，最近收集了一下JavaScript代码注释范例，希望能够帮助大家撸得一手妖媚而又放荡的Bug。
 
