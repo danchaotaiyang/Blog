@@ -1,0 +1,498 @@
+- 回调函数  
+- Promise  
+- Generator + Co  
+- Async/Await
+
+同步方法
+同步方法顺序且连续执行，必须执行完毕或返回后才会继续执行后续代码。 
+
+函数（封装，私有化）
+- 是由事件驱动的或者当它被调用时执行的可重复使用的代码块  
+
+高阶函数  
+- 接受函数作为输入：函数可以当做参数传递给另一个函数  
+- 输出一个函数：一个函数执行后返回一个函数 
+
+例：
+判断内容数据类型是否为期望类型值
+/**
+ * 判断内容值是否为期望的类型
+ * @param {*} content 内容值
+ * @param {String} expect 期望值的类型
+ * @returns {Boolean} 返回内容值是否为期望的类型
+ */
+function isType(content, expect) {
+	// 四种判断类型方法： constructor、typeof、instanceof、Object.prototype.toString
+    let type = Object.prototype.toString.call(content).replace(/\[object\s|\]/g, '');
+    return type === expect;
+}
+
+console.log(isType('hello', 'String'));	// true
+扩展：利用高阶函数来定义判断各数据类型的方法
+/**
+ * 返回用于判断内容值是否为期望的类型的函数
+ * @param {String} expect 期望类型
+ * @returns {function(*)} 返回判断函数
+ */
+function isType(expect) {
+    return function (content) {
+        let type = Object.prototype.toString.call(content).replace(/\[object\s|\]/g, '');
+        return type === expect;
+    }
+}
+
+let util = {};
+let types = ['Object', 'Array', 'Function', 'String', 'Number', 'Boolean', 'Null', 'Undefined'];
+
+types.forEach((item) => {
+    util[`is${item}`] = isType(item);
+});
+
+console.log(util.isNumber(86));  // true
+console.log(util.isBoolean('true'));  // false
+
+异步方法
+异步表示非连续执行，如：setTimeout、Ajax、事件等方法，通常会在另一个线程中执行，不会阻塞主线程。  
+
+异步编程的方法，大概有下面四种。  
+- 回调函数
+- 事件监听
+- 发布/订阅
+- Promise 对象
+
+异步方法如果出错了不能捕获 try/catch 错误  
+获取的结果不能通过 return 返回
+
+回调函数
+阮一峰：所谓回调函数，就是把任务的第二段单独写在一个函数里面，等到重新执行这个任务的时候，就直接调用这个函数。它的英语名字 callback，直译过来就是"重新调用"。[(原文)](http://www.ruanyifeng.com/blog/2015/04/generator.html)
+
+虽然回调函数多用于异步编程，但带有回调函数的方法不一定是异步的。
+
+问题1：
+第二个请求是依赖于第一个请求
+例：
+// error-first
+// 回调方法执行之前抛出的错误，程序无法捕捉，只能当作参数传入回调方法
+fs.readFile('./1.txt', 'utf8', function (err, a) {
+	fs.readFile('./2.txt', 'utf8', function (err, b) {
+		console.log(a, b);
+	});
+});
+
+问题2:
+两个异步请求，同时拿到两个异步请求的结果  
+例：
+function after(times, callback) {
+	let arr = [];
+
+	return function (data) {
+		arr.push(data);
+		if(--times === 0){
+			callback(arr);
+		}
+	};
+}
+
+let out = after(2, function (data) { 
+	console.log(data);
+});
+
+out('once');
+out('twice');
+
+第二次执行时会一起得到结果 ['once', 'twice']。  
+可以理解为回调方法相当于两个异步请求有关系。
+
+回调函数可能会出现会出现多重嵌套，从而造成代码难以管理，提高了额外的维护成本，这种情况被称为 产生回调地狱 (Callback Hell)。
+
+发布/订阅模式  
+- 发布(这件事发生时 我要依次执行)  
+- 订阅(我预先想到的事)
+
+let fs = require('fs');
+let events = {
+    cbs: [],
+    res: [],
+    on(callback) {
+        this.cbs.push(callback);
+    },
+    emit(data) {
+        this.res.push(data);
+        this.cbs.forEach(item => item(this.res));
+    }
+};
+
+// 订阅过程  
+events.on((data) => {
+    if (data.length === 2) {
+        console.log(data);
+    }
+});
+
+// 订阅过程  
+events.on(() => {
+    console.log('good');
+});
+
+fs.readFile('file-01.txt', 'utf8', (err, data) => {
+    events.emit(data);
+});
+
+fs.readFile('file-02.txt', 'utf8', (err, data) => {
+    events.emit(data);
+});
+
+发布订阅同时拿到两个异步结果，需要回调函数，Promise 不需要回调函数
+
+Promise
+promise 对象用于表示一个异步操作的最终状态（完成或失败），以及其返回的值。
+三个状态 成功态 失败态 等待态  
+一个 Promise 有以下几种状态:
+- pending: 初始等待状态，既不是成功，也不是失败状态。
+- fulfilled: 成功态，意味着操作成功完成。
+- rejected: 失败态，意味着操作失败。
+
+默认状态是等待态  
+等待态可以变成  成功态或失败态  
+成功就不能失败  
+也不能从失败变成成功  
+不支持的低版本浏览器 需要 es6-promise 模块
+
+Promise 类  
+new Promise 时会传递一个执行器 executor  
+executor 执行器是立即执行的，并且接受两个函数 resolve 和 reject 作为其参数
+每个 promise 实例都有一个 then 方法，参数是成功和失败，成功会有成功的值 失败  
+同一个 promise 可以多次 then
+let promise = new Promise((resolve, reject) => {
+	reject('买');
+});
+
+promise
+    .then((data) => {
+        console.log('data', data);
+    }, (err) => {
+        console.log('err', err);
+    });
+
+promise
+    .then((data) => {
+        console.log('data', data);
+    }, (err) => {
+        console.log('err', err);
+    });
+
+回调地狱 
+Promise 解决回调地狱  
+例：
+let fs = require('fs');
+function read(path, encoding) {
+    return new Promise((resolve, reject) => {
+        fs.readFile(path, encoding, function (err, data) {
+            if (err) return reject(err);
+            resolve(data);
+        });
+    });
+}
+
+多次 then
+同一个 promise 可以多次 then 
+成功的回调或者失败的回调执行后可以返回一个 promise  
+会将这个 promise 的执行结果传递给下一次 then 中  
+如果返回一个普通的值 ，会将这个普通值传递倒下一次 then 的成功的参数
+read('./file-01.txt', 'utf8')
+    .then(data => {
+    
+        // 因为 read 方法会返回一个 promise ，返回read执行相当于返回一个 promise
+        // 会将这个 promise 的执行**成功的结果**传递给下一次 then 的 resolve 
+        return read(data, 'utf8');
+    }, err => {
+        console.log(err);
+    })
+    .then(data => {
+    
+        // 如果返回一个普通的值 ，会将这个普通值传递倒下一次 then 的成功的参数
+        return [data];
+    }, err => {
+        console.log(err);
+    })
+    .then(data => {
+    
+        // 返回的是一个普通值
+        console.log(data);
+        
+        // 没有写 return ，相当于返回一个 undefined ，下一个then的成功值则为 undefined
+    }, err => {
+        console.log(err);
+    })
+    .then(data => {
+    
+        // 上一个 then 没有返回值，默认值为 undefined
+        // undefined 也算成功
+        console.log(data);
+        
+        // 抛出错误，将传给下一个 then 的 reject 
+        throw new Error('xxx');
+    }, err => {
+        console.log(err);
+    })
+    .then(null, err => {
+    
+        // 如果上一个 then 抛出错误，最近的 reject 会执行
+        // reject 执行后默认下一个 then 会接收 undefined 
+        console.log(err);
+    })
+    .then(data => {
+    
+        // 上一个 then 中失败没有返回值，默认为 undefined 
+        console.log('resolve');        
+    }, err => {
+        console.log('reject');
+    });
+
+代替 reject
+可以将所有 reject 方法都用 catch 代替
+read('./file-01.txt', 'utf8')
+    .then(data => {
+        return read(data, 'utf8');
+    })
+    .then(data => {
+        return [data];
+    })
+    .then(data => {
+        console.log(data);
+    })
+    .then(data => {
+        console.log(data);
+        
+        // 抛出错误后，找到最近的接收错误方法
+        // 如果所有的 then 都没有 reject 方法，则找最后一个 catch
+        throw new Error('xxx');
+    })
+    .then(null)
+    .then(data => {
+        console.log('resolve');        
+    })
+    .catch(err => {
+        console.log(err);
+    });
+
+then 穿透
+let promise = new Promise((resolve, reject) => {
+    resolve('ok);
+});
+
+// 成功不写的时候，默认: value => value
+// 失败不写的时候，默认: err => {throw err}
+promise
+    .then()
+    .then(data => {
+        
+    });
+
+all
+解决多个异步请求问题
+例：
+法等待两个 promise 都执行完成后，会返回一个新的 promise  
+如果有一个失败就失败了
+Promise
+    .all([read('file-01.txt', 'utf8'), read('file-02.txt', 'utf8')])
+    .then(data => {
+        console.log(data);
+    }, err => {
+        console.log(err);
+    });
+
+race
+race 同样返回一个 Promise 其成功与失败的状态取决于最先返回结果的状态
+谁跑的快就用谁的结果
+Promise
+    .race([read('file-01.txt', 'utf8'), read('file-02.txt', 'utf8')])
+    .then(data => {
+        console.log(data);
+    }, err => {
+        console.log(err);
+    });
+
+有状态的 promise
+创建一个一出生就成功或者失败的 promise
+// 成功态
+Promise
+    .resolve('123')
+    .then(data => {
+	    console.log(data);
+    });
+    
+Promise
+    .reject('123')
+    .then(null, err => {
+        console.log(err)
+    });
+
+链式调用返回 this 
+promise 不能返回 this 
+promise 实现链式调用是靠返回一个新的 promise
+
+从 Callback 到了 Promise 时代，不需要再去调用回调函数。
+Promise 的典型应用 Axios Fetch
+
+但实际上 Promise 只是对回调函数的改进的写法而已，并不是新的语法功能，原来的语义也被一堆 then 破坏掉了。
+
+Generator迭代器(迭代模式)
+es6 实现的 generator（生成器）会返回一个内部指针（迭代器）。
+
+例：
+for (let i of [1, 2, 3]) {
+    console.log(i);
+}
+
+例：
+function arg() {
+    // arguments是一个类数组
+    // 有索引，有长度，但不是数组
+    // 没有数组的方法
+    // 但可以被迭代
+    // 内置iterator
+    for (let i of arguments) {
+        console.log(i);
+    }
+}
+
+arg(1, 2, 3, 4);
+
+例：
+let arr = {0: 1, 1: 2, 2: 3, length: 3};
+
+for (let i of arr) {
+    console.log(i);
+}
+
+// TypeError: arr is not iterable
+// arr是不可被迭代的，因为arr没有迭代器
+
+为自定义类数组增加迭代方法，迭代方法是帮我们迭代
+
+* 代表一个生成器，function 关键字和方法名之间有个 * ，这就代表一个 generator  
+
+生成器生成一个迭代器，配合 yield，遇到 yield 就暂停，
+
+迭代器必须返回一个对象，对象里有一个 next 方法，调用迭代器的 next 方法移动内部指针，每调用一次 next 方法就可以返回一个对象 {value,done}，对象里有俩属性：表示当前阶段的信息 ，value 为 yield 表达式的值，done 是一个表示是否执行完毕的布尔值。
+
+再次调用 next 继续执行。
+遇到 return 时就迭代完成了，没写 return 则为 return undefined，也算完成了
+function * thing() {
+    // 生成器返回一个迭代器
+    // yield产出，并且为未完成状态
+    yield 1;
+
+    // return表示完成
+    return 2;
+}
+
+// 返回一个迭代器
+let it = thing();
+
+迭代器里有 next 方法，返回一个对象，包含 done 和 value  
+// { value: 1, done: false }
+console.log(it.next());
+
+// { value: 2, done: true }
+console.log(it.next());
+
+传值
+function * some() {
+
+    let a = yield 1;
+    console.log('a', a);
+    let b = yield 2;
+    console.log('b', b);
+
+    return b;
+}
+
+let so = some();
+
+// 第一个next传递参数无效，没有意义
+// 传了100也没用
+console.log(so.next('100'));     // { value: 1, done: false }
+
+// 第二个next传参是第一次yield的返回值
+console.log(so.next('200'));    // a 200
+                                // { value: 2, done: false }
+
+console.log(so.next('300'));    // b 300
+                                // { value: '300', done: true }
+
+例：  
+获取 1.txt 内容：2.txt   2.txt内容是最终结果
+let blueBird = require('bluebird');
+let fs = require('fs');
+
+let read = blueBird.promisify(fs.readFile);
+
+function* readFile() {
+    let data1 = yield read('1.txt', 'utf8');
+    let data2 = yield read(data1, 'utf8');
+    return data2;
+}
+
+配合 promise 使用：  
+let it = readFile();
+
+it.next().value
+    .then(data => {
+        return it.next(data).value;
+    })
+    .then(data => {
+        console.log(data);
+    });
+
+配合 co 使用:  
+function co(it) {
+    return new Promise((resolve, reject) => {
+        function next(dataset) {
+            let {value, done} = it.next(dataset);
+            if (!done) {
+                value.then(data => {
+                    next(data);
+                }, reject);
+            } else {
+                resolve(value);
+            }
+        }
+        next();
+    });
+}
+
+co(readFile())
+    .then(data => {
+        console.log(data);
+    });
+
+使用 co 库  
+let co = require('co');
+
+co(readFile())
+    .then(data => {
+        console.log(data);
+    });
+
+async / await
+async await 其实是一个语法糖  
+async + await = generator + co
+let blueBird = require('bluebird');
+let fs = require('fs');
+
+let read = blueBird.promisify(fs.readFile);
+
+async function readFile() {
+    let data1 = await read('1.txt', 'utf8');
+    let data2 = await read(data1, 'utf8');
+    return data2;
+}
+
+readFile()
+    .then(data => {
+        console.log(data);
+    });
+
+完
