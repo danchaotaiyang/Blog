@@ -1,3 +1,5 @@
+## 1
+
 给定一个整数数组和一个目标值，找出数组中和为目标值的两个数。
 
 你可以假设每个输入只对应一种答案，且同样的元素不能被重复利用。
@@ -29,7 +31,7 @@
         return res;
     };
 
-
+## 2
 给定一个已按照升序排列 的有序数组，找到两个数使得它们相加之和等于目标数。
 
 函数应该返回这两个下标值 index1 和 index2，其中 index1 必须小于 index2。
@@ -114,4 +116,49 @@
 
         }
         return false;
+    };
+
+## 3
+
+
+给定两个非空链表来表示两个非负整数。位数按照逆序方式存储，它们的每个节点只存储单个数字。将两数相加返回一个新的链表。
+
+你可以假设除了数字 0 之外，这两个数字都不会以零开头。
+
+示例：
+
+输入：(2 -> 4 -> 3) + (5 -> 6 -> 4)
+输出：7 -> 0 -> 8
+原因：342 + 465 = 807
+
+    var addTwoNumbers = function(l1, l2) {
+        var carray = 0;
+        var ary = [];
+        var p = l1, q = l2;
+        while(p || q){
+            var pv = 0, qv = 0;
+            if (p && p.val) {
+                pv = p.val;
+            };
+            if (q && q.val) {
+                qv = q.val;
+            };
+            var tv = pv + qv;
+            console.log(tv);
+            if (carray > 0) {
+                tv += carray;
+                carray = 0;
+            }
+            if (tv >= 10) {
+                tv -= 10;
+                carray = 1;
+            }
+            ary.push(tv);
+            p = p && p.next || null;
+            q = q && q.next || null;
+        }
+        if (carray > 0) {
+            ary.push(1);
+        }
+        return ary;
     };
