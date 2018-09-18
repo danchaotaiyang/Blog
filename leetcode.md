@@ -61,3 +61,57 @@
         return res;
     };
 
+
+
+给定一个二叉搜索树和一个目标结果，如果 BST 中存在两个元素且它们的和等于给定的目标结果，则返回 true。
+
+案例 1:
+
+    输入: 
+        5
+       / \
+      3   6
+     / \   \
+    2   4   7
+
+    Target = 9
+
+    输出: True
+ 
+
+案例 2:
+
+    输入: 
+        5
+       / \
+      3   6
+     / \   \
+    2   4   7
+
+    Target = 28
+
+    输出: False
+
+-
+
+    var findTarget = function (root, k) {
+        if (!root) {
+            return false;
+        }
+        let queue = [], remainders = [];
+        queue.push(root);
+        while (queue.length) {
+            let curr = queue.shift();
+            if (remainders.indexOf(curr.val) !== -1) return true;
+            remainders.push(k - curr.val);
+            if (curr.left) {
+                queue.push(curr.left);
+            }
+
+            if (curr.right) {
+                queue.push(curr.right);
+            }
+
+        }
+        return false;
+    };
