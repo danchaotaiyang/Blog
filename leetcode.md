@@ -10,10 +10,10 @@
 所以返回 [0, 1]
 
     var twoSum = function (nums, target) {
-
-        for (var n = 0; n < nums.length; n++) {
+        var len = nums.length;
+        for (var n = 0; n < len; n++) {
             var _n = nums[n];
-            for (var m = 0; m < nums.length; m++) {
+            for (var m = 0; m < len; m++) {
                 var _m = nums[m];
                 if (n !== m && _n + _m === target) {
                     console.log(_n, _m);
