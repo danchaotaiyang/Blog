@@ -15,10 +15,7 @@
             var _n = nums[n];
             for (var m = 0; m < nums.length; m++) {
                 var _m = nums[m];
-                if (n === m) {
-                    continue;
-                }
-                if (_n + _m === target) {
+                if (n !== m && _n + _m === target) {
                     console.log(_n, _m);
                     return [n, m];
                 }
