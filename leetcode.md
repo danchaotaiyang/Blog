@@ -10,19 +10,23 @@
 所以返回 [0, 1]
 
     var twoSum = function (nums, target) {
-        var len = nums.length;
-        for (var n = 0; n < len; n++) {
-            var _n = nums[n];
-            for (var m = 0; m < len; m++) {
-                var _m = nums[m];
-                if (n !== m && _n + _m === target) {
-                    console.log(_n, _m);
-                    return [n, m];
-                }
+        var res = [0, 0];
+        var _nums = nums;
+        var _len = _nums.length;
+        if (_len < 2) {
+            return res;
+        }
+        for (var n = 0; n < _len; n++) {
+            var _n = _nums[n];
+            var cur = target - _n;
+            var m = nums.indexOf(cur);
+            if (m > -1 && n !== m) {
+                res = [n, m];
+                return res;
             }
         }
 
-        return [0, 0];
+        return res;
     };
 
 
