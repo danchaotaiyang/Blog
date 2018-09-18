@@ -1,0 +1,29 @@
+给定一个整数数组和一个目标值，找出数组中和为目标值的两个数。
+
+你可以假设每个输入只对应一种答案，且同样的元素不能被重复利用。
+
+示例:
+
+给定 nums = [2, 7, 11, 15], target = 9
+
+因为 nums[0] + nums[1] = 2 + 7 = 9
+所以返回 [0, 1]
+
+var twoSum = function (nums, target) {
+
+    for (var n = 0; n < nums.length; n++) {
+        var _n = nums[n];
+        for (var m = 0; m < nums.length; m++) {
+            var _m = nums[m];
+            if (n === m) {
+                continue;
+            }
+            if (_n + _m === target) {
+                console.log(_n, _m);
+                return [n, m];
+            }
+        }
+    }
+
+    return [0, 0];
+};
