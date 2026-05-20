@@ -61,17 +61,29 @@ function f2(){
 f2() === undefined; // true
 ```
 
-自执行函数执行，方法中的this一般都是window
+自执行函数执行，是独立调用
 
 ```
-var obj = {
+var obj1 = {
 	fn: (function() {
 		// this -> window
 	})()
 };
 
+var obj2 = {
+	fn: (function() {
+		'use strict';
+		// this -> undefined
+	})()
+};
+
 ~function() {
 	// this -> window
+}()
+
+~function() {
+	'use strict';
+	// this -> undefined
 }()
 ```
 
