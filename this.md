@@ -6,9 +6,9 @@
 
 // 非严格模式下的情况
 // 全局环境中的this
-// 函数中的this
-// 方法中的this
-// 事件中的函数中的this
+// 普通函数中的this
+// 方法函数中的this
+// 事件函数中的this
 // 构造函数中this
 // call和apply
 // bind
