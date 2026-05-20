@@ -115,11 +115,11 @@ Array.prototype.slice();  // this -> Array.prototype
 
 ## 事件函数中的this
 
-给元素的某个事件绑定了一个方法，当事件触发，函数执行的时候，绑定的这个方法中的this一般是当前操作的这个DOM元素
+给元素的某个事件绑定了一个函数，当事件触发，事件函数执行，绑定的这个函数中的this是当前触发事件的DOM元素
 
-'二般'情况下
+**注意:**
 
-IE6~8下，如果我们使用DOM2事件绑定，方法执行的时候，里面的this不是当前元素，而是window
+IE6~8下，如果我们使用DOM2事件，事件函数中的this不是当前元素，而是window对象
 
 ```
 ele.attachEvent('onclick', function() {
